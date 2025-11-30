@@ -78,7 +78,7 @@ if tempo == 'Dependente':
                 z =  psi_function(x_vals, t_vals)
 
                 fig, ax = plt.subplots()
-                plt.style.use('seaborn-darkgrid')
+                plt.style.use('bmh')
                 ax.plot(x_vals, np.real(z), label='Função de Onda (dependente do tempo), real', color='blue')
 
                 ax.plot(x_vals, np.imag(z), label='Função de Onda (dependente do tempo), imag', color='red')
