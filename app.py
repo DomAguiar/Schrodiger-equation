@@ -180,8 +180,9 @@ if tempo == 'Dependente':
                 t_vals = t_p
                 XX, YY = np.meshgrid(x_vals,y_vals)
                 z =  psi_function(XX, YY, t_vals)
-
+                
                 fig = plt.figure(figsize=(10,7))
+
                 ax = fig.add_subplot(111, projection='3d')
 
                 ax.plot_surface(
