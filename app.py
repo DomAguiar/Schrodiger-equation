@@ -8,7 +8,7 @@ tempo = st.selectbox('Selecione se é dependente do tempo ou se é independente:
 
 dimensão = st.selectbox('Selecione o número de seleções', ['1D','2D','3D'])
 
-partícula = st.selectbox("Selecione a partícula: ", ['Elétron', 'Próton', 'Muon'])
+partícula = st.selectbox("Selecione a partícula: ", ['Elétron', 'Próton', 'Muon', ])
 
 potencial = st.selectbox("Selecione o potencial: ", ['Partícula Livre'])
 
@@ -78,7 +78,7 @@ if tempo == 'Dependente':
                 z =  psi_function(x_vals, t_vals)
 
                 fig, ax = plt.subplots()
-
+                plt.style.use('ggplot')
                 ax.plot(x_vals, np.real(z), label='Função de Onda (dependente do tempo), real', color='blue')
 
                 ax.plot(x_vals, np.imag(z), label='Função de Onda (dependente do tempo), imag', color='red')
