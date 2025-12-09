@@ -1,14 +1,14 @@
 import streamlit as st
 import numpy as np
-import scipy as sp
 import matplotlib.pyplot as plt
-from sympy import symbols, simplify, Eq, diff, I, sin, plotting, sqrt, pi, exp, lambdify
+import plotly.graph_objects as go
+from sympy import symbols, simplify, diff, sqrt, pi, exp, lambdify
 
 tempo = st.selectbox('Selecione se é dependente do tempo ou se é independente: ', ['Dependente','Independente'])
 
 dimensão = st.selectbox('Selecione o número de seleções', ['1D','2D','3D'])
 
-partícula = st.selectbox("Selecione a partícula: ", ['Elétron', 'Próton', 'Muon', ])
+partícula = st.selectbox("Selecione a partícula: ", ['Elétron', 'Próton', 'Neutron', 'Muon', 'Tau'])
 
 potencial = st.selectbox("Selecione o potencial: ", ['Partícula Livre'])
 
@@ -25,7 +25,7 @@ if tempo == 'Dependente':
             n = st.number_input("Digite o número quântico: ", value=4)
 
         with col3:
-            t_p = st.text_input("Digite o tempo (ex: 1e-20):", "1e-20")
+            t_p = st.text_input("Digite o tempo:", "1e-20")
 
         hbar = 1.054718e-34
 
@@ -37,8 +37,14 @@ if tempo == 'Dependente':
         elif partícula == 'Próton':
             m = 1.672621777e-27
 
+        elif partícula == 'Neutron':
+            m = 1.6749275e-27
+
         elif partícula == 'Muon':
-            m = 1.9e-28
+            m = 1.8835316e-28
+
+        elif partícula == 'Tau':
+            m = 3.16747e-27
 
         if dimensão == '1D':
             if potencial == 'Partícula Livre':
@@ -66,36 +72,85 @@ if tempo == 'Dependente':
 
                 ih_t = 1j*hbar*diff(PSI, t)
 
-                st.title('Função de onda')
+                st.header('Função de onda')
                 st.write(PSI)
 
                 psi_function = lambdify((x,t),PSI,"numpy")
 
-                x_vals = np.linspace(0,float(Largura),10000)
+                x_vals = np.linspace(0,float(Largura),100)
 
                 t_vals = float(t_p)
 
                 z =  psi_function(x_vals, t_vals)
 
-                fig, ax = plt.subplots()
-                plt.style.use('dark_background')
-                ax.plot(x_vals, np.real(z), label='Função de Onda (dependente do tempo), real', color='blue')
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=x_vals, y=np.real(z),
+                         mode='lines',
+                         name='Re(Ψ)',
+                         line=dict(color='blue')))
 
-                ax.plot(x_vals, np.imag(z), label='Função de Onda (dependente do tempo), imag', color='red')
+                fig.add_trace(go.Scatter(x=x_vals, y=np.imag(z),
+                         mode='lines',
+                         name='Im(Ψ)',
+                         line=dict(color='red')))
+                
+                fig.update_layout(
+                title= f"Função de Onda no instante {t_p} segundos",
+                xaxis_title="Posição",
+                yaxis_title="PSI(x,t)",
+                showlegend=True,
+                template="plotly_dark",  # fundo escuro
+                width=800,
+                height=400)
+                
+                st.plotly_chart(fig)
+                
+                t_vals = np.linspace(0,float(t_p), 100)
+                XX, TT = np.meshgrid(x_vals, t_vals)
+                Z = psi_function(XX, TT)
 
-                ax.grid()
+                st.header('Função de Onda Variável')
 
-                ax.axhline(0,color="black")
+                fig3D = go.Figure(
+                    data=[
+                        go.Surface(
+                            x=XX,
+                            y=TT,
+                            z=np.real(Z),  # ou np.abs(Z)
+                            colorscale='Viridis'
+                        )
+                    ]
+                )
 
-                ax.axvline(0,color="black")
+                fig.update_layout(
+                    title='Função de Onda real variável de PSI',
+                    scene=dict(
+                        xaxis_title='posição x',
+                        yaxis_title='Tempo',
+                        zaxis_title='Função real PSI'
+                    ),
+                    width=800,
+                    height=700
+                )
 
-                ax.legend()
 
-                ax.set_ylabel('RE(PSI) e IM(PSI)')
 
-                ax.set_xlabel('Posição')
+                st.plotly_chart(fig3D)
+                densidade_p = np.abs(C*X)**2
+                dnsdd_lambdify = lambdify(x,densidade_p,'numpy')
 
-                st.pyplot(fig)
+                x_vals = np.linspace(0,10,1000)
+                z = dnsdd_lambdify(x_vals)
+
+                fig2 = go.Figure()
+                fig2.add_trace(go.Scatter(x=x_vals, y=np.real(z),
+                         mode='lines',
+                         name='Densidade de Probabilidade',
+                         line=dict(color='blue')))
+                
+                st.plotly_chart(fig2)
+            
+                
                     
             except Exception as e:
                 st.error(f"ERROR: {e}")
@@ -137,9 +192,15 @@ if tempo == 'Dependente':
 
         elif partícula == 'Próton':
             m = 1.672621777e-27
+            
+        elif partícula == 'Neutron':
+            m = 1.6749275e-27
 
         elif partícula == 'Muon':
-            m = 1.9e-28
+            m = 1.8835316e-28
+
+        elif partícula == 'Tau':
+            m = 3.16747e-27
 
         if dimensão == '2D':
             if potencial == 'Partícula Livre':
@@ -180,23 +241,85 @@ if tempo == 'Dependente':
                 t_vals = t_p
                 XX, YY = np.meshgrid(x_vals,y_vals)
                 z =  psi_function(XX, YY, t_vals)
-                
-                fig = plt.figure(figsize=(10,7))
 
-                ax = fig.add_subplot(111, projection='3d')
+                XX, YY = np.meshgrid(x_vals, y_vals)
 
-                ax.plot_surface(
-                    XX, YY, np.real(z), 
-                    label='Função de Onda, real', 
-                    cmap='viridis',
-                    edgecolor='none',
-                    antialiased=True,
-                    shade=True
-                    )
-                ax.set_xlabel('posição x')
-                ax.set_ylabel('posição y')
-                ax.set_zlabel('Função de Onda real')
-                st.pyplot(fig)
+                fig = go.Figure(
+                    data=[
+                        go.Surface(
+                            x=XX,
+                            y=YY,
+                            z=np.real(z),
+                            colorscale='Viridis'
+                        )
+                    ]
+                )
+
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title='posição x',
+                        yaxis_title='posição y',
+                        zaxis_title='Função de Onda real'
+                    ),
+                    width=800,
+                    height=700
+                )
+
+                st.plotly_chart(fig)
+
+                fig1 = go.Figure(
+                    data=[
+                        go.Surface(
+                            x=XX,
+                            y=YY,
+                            z=np.imag(z),
+                            colorscale='Viridis'
+                        )
+                    ]
+                )
+
+                fig1.update_layout(
+                    scene=dict(
+                        xaxis_title='posição x',
+                        yaxis_title='posição y',
+                        zaxis_title='Função de Onda Imaginária'
+                    ),
+                    width=800,
+                    height=700
+                )
+
+                st.plotly_chart(fig1)
+
+                densidade_p = np.abs(C*X*Y)**2
+                dnsdd_lambdify = lambdify((x,y),densidade_p,'numpy')
+                x_vals = np.linspace(0,float(Largura),1000)
+                y_vals = np.linspace(0,float(Altura),1000)
+                z = dnsdd_lambdify(x_vals,y_vals)
+
+                fig = go.Figure(
+                    data=[go.Surface(
+                        x=x_vals,
+                        y=y_vals,
+                        z=np.real(z),
+                        colorscale='Viridis'
+
+                        )
+                    ]
+                )
+
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title='posição x',
+                        yaxis_title='posição y',
+                        zaxis_title='Densidade de Probabilidade'
+                    ),
+                    width=800,
+                    height=700
+                )
+
+                st.plotly_chart(fig)
+
+
                     
             except Exception as e:
                 st.error(f"ERROR: {e}")
@@ -242,9 +365,15 @@ if tempo == 'Dependente':
 
         elif partícula == 'Próton':
             m = 1.672621777e-27
+            
+        elif partícula == 'Neutron':
+            m = 1.6749275e-27
 
         elif partícula == 'Muon':
-            m = 1.9e-28
+            m = 1.8835316e-28
+
+        elif partícula == 'Tau':
+            m = 3.16747e-27
 
         if dimensão == '3D':
             if potencial == 'Partícula Livre':
@@ -300,9 +429,15 @@ if tempo == 'Independente':
 
         elif partícula == 'Próton':
             m = 1.672621777e-27
+            
+        elif partícula == 'Neutron':
+            m = 1.6749275e-27
 
         elif partícula == 'Muon':
-            m = 1.9e-28
+            m = 1.8835316e-28
+
+        elif partícula == 'Tau':
+            m = 3.16747e-27
 
         if dimensão == '1D':
             if potencial == 'Partícula Livre':
@@ -340,25 +475,41 @@ if tempo == 'Independente':
                 y = psi_function(x_vals)
 
 
-                fig, ax = plt.subplots()
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=x_vals, y=np.real(y),
+                         mode='lines',
+                         name='Re(Ψ)',
+                         line=dict(color='blue')))
 
-                ax.plot(x_vals, np.real(y), label='Função de Onda, real', color='blue')
+                fig.add_trace(go.Scatter(x=x_vals, y=np.imag(y),
+                         mode='lines',
+                         name='Im(Ψ)',
+                         line=dict(color='red')))
+                
+                fig.update_layout(
+                title= f"Função de Onda",
+                xaxis_title="Posição",
+                yaxis_title="PSI(x)",
+                showlegend=True,
+                template="plotly_dark",  # fundo escuro
+                width=800,
+                height=400)
+                
+                st.plotly_chart(fig)
+                
+                densidade_p = np.abs(C*X)**2
+                dnsdd_lambdify = lambdify(x,densidade_p,'numpy')
 
-                ax.plot(x_vals, np.imag(y), label='Função de Onda, imag', color='red')
+                x_vals = np.linspace(0,10,1000)
+                z = dnsdd_lambdify(x_vals)
 
-                ax.grid()
-
-                ax.axhline(0,color="black")
-
-                ax.axvline(0,color="black")
-
-                ax.legend()
-
-                ax.set_ylabel('RE(PSI) e IM(PSI)')
-
-                ax.set_xlabel('Posição')
-
-                st.pyplot(fig)
+                fig2 = go.Figure()
+                fig2.add_trace(go.Scatter(x=x_vals, y=np.real(z),
+                         mode='lines',
+                         name='Densidade de Probabilidade',
+                         line=dict(color='blue')))
+                
+                st.plotly_chart(fig2)
                     
             except Exception as e:
                 st.error(f"ERROR: {e}")
@@ -394,9 +545,15 @@ if tempo == 'Independente':
 
         elif partícula == 'Próton':
             m = 1.672621777e-27
+            
+        elif partícula == 'Neutron':
+            m = 1.6749275e-27
 
         elif partícula == 'Muon':
-            m = 1.9e-28
+            m = 1.8835316e-28
+
+        elif partícula == 'Tau':
+            m = 3.16747e-27
 
         if dimensão == '2D':
             if potencial == 'Partícula Livre':
@@ -438,24 +595,84 @@ if tempo == 'Independente':
                 XX, YY = np.meshgrid(x_vals,y_vals)
                 z =  psi_function(XX, YY)
 
-                fig = plt.figure(figsize=(10,7))
-                ax = fig.add_subplot(111, projection='3d')
+                fig = go.Figure(
+                    data=[
+                        go.Surface(
+                            x=XX,
+                            y=YY,
+                            z=np.real(z),
+                            colorscale='Viridis'
+                        )
+                    ]
+                )
 
-                ax.plot_surface(
-                    XX, YY, np.real(z), 
-                    label='Função de Onda, real', 
-                    cmap='viridis',
-                    edgecolor='none',
-                    antialiased=True,
-                    shade=True
-                    )
-                ax.set_xlabel('posição x')
-                ax.set_ylabel('posição y')
-                ax.set_zlabel('Função de Onda real')
-                st.pyplot(fig)
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title='posição x',
+                        yaxis_title='posição y',
+                        zaxis_title='Função de Onda real'
+                    ),
+                    width=800,
+                    height=700
+                )
+
+                st.plotly_chart(fig)
+
+                fig1 = go.Figure(
+                    data=[
+                        go.Surface(
+                            x=XX,
+                            y=YY,
+                            z=np.imag(z),
+                            colorscale='Viridis'
+                        )
+                    ]
+                )
+
+                fig1.update_layout(
+                    scene=dict(
+                        xaxis_title='posição x',
+                        yaxis_title='posição y',
+                        zaxis_title='Função de Onda Imaginária'
+                    ),
+                    width=800,
+                    height=700
+                )
+
+                st.plotly_chart(fig1)
+
+                densidade_p = np.abs(C*X*Y)**2
+                dnsdd_lambdify = lambdify((x,y),densidade_p,'numpy')
+                x_vals = np.linspace(0,float(Largura),1000)
+                y_vals = np.linspace(0,float(Altura),1000)
+                z = dnsdd_lambdify(x_vals,y_vals)
+
+                fig = go.Figure(
+                    data=[go.Surface(
+                        x=x_vals,
+                        y=y_vals,
+                        z=np.real(z),
+                        colorscale='Viridis'
+
+                        )
+                    ]
+                )
+
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title='posição x',
+                        yaxis_title='posição y',
+                        zaxis_title='Densidade de Probabilidade'
+                    ),
+                    width=800,
+                    height=700
+                )
+
+                st.plotly_chart(fig)
                     
             except Exception as e:
                 st.error(f"ERROR: {e}")
+
     if dimensão == '3D':
         x, y, z = symbols('x y z')
 
@@ -496,9 +713,15 @@ if tempo == 'Independente':
 
         elif partícula == 'Próton':
             m = 1.672621777e-27
+            
+        elif partícula == 'Neutron':
+            m = 1.6749275e-27
 
         elif partícula == 'Muon':
-            m = 1.9e-28
+            m = 1.8835316e-28
+
+        elif partícula == 'Tau':
+            m = 3.16747e-27
 
         if dimensão == '3D':
             if potencial == 'Partícula Livre':
