@@ -86,12 +86,12 @@ if tempo == 'Dependente':
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(x=x_vals, y=np.real(z),
                          mode='lines',
-                         name='Re(Ψ)',
+                         name='Função Real',
                          line=dict(color='blue')))
 
                 fig.add_trace(go.Scatter(x=x_vals, y=np.imag(z),
                          mode='lines',
-                         name='Im(Ψ)',
+                         name='Função Imaginária',
                          line=dict(color='red')))
                 
                 fig.update_layout(
@@ -578,7 +578,7 @@ if tempo == 'Independente':
 
                 PSI = C * X * Y
 
-                H_psi = ((-hbar**2 / (2*m)) * diff(PSI, x, 2)+diff(PSI, y, 2) + V * PSI)
+                H_psi = ((-hbar**2 / (2*m)) * (diff(PSI, x, 2) + diff(PSI, y, 2)) + V * PSI)
 
                 E_psi = E * PSI
 
